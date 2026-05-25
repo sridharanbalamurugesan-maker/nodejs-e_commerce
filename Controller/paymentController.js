@@ -60,7 +60,7 @@ exports.updateOrderStatus=async(req,res)=>{
     try {
         const {status}=req.body;
         const orderId=req.params.id;
-        const updatedOrder=await order.findByIdAndUpdate(orderId,{status:status},{new:true});
+        const updatedOrder=await order.findByIdAndUpdate(orderId,{status:status},{returnDocument: "after" });
         console.log("updatedOrder",updatedOrder);
          res.status(200).json({
       success: true,

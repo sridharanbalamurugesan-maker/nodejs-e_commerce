@@ -8,7 +8,7 @@ exports.getAllOrders=async(req,res)=>{
         if(!userId){
             res.status(400).json({message:"User Not found"});
         }
-        const data=await order.find({status:"completed"}).populate("product");
+        const data=await order.find({status:"completed"}).populate("product").sort({ createdAt: -1 });
         // console.log("getAllOrder",data);
         if(!data){
             res.status(400).json({
@@ -38,7 +38,7 @@ exports.editOrder=async(req,res)=>{
                     data:null
                 })
             }
-        const data=await reviewProduct.findByIdAndUpdate(productData._id,{rating},{ new: true });
+        const data=await reviewProduct.findByIdAndUpdate(productData._id,{rating},{ returnOriginal: false });
             res.status(200).json({
                     success:true,
                     message:"Successfully Updated",

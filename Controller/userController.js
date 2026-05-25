@@ -33,7 +33,7 @@ exports.registerUser=async(req,res)=>{
                 email:email,
                 mobile:mobile,
                 address:address,
-                password:hashedPassword,
+                password:hashedPassword, 
                 role:role._id
             })
              res.status(201).json({
@@ -96,13 +96,13 @@ exports.blockUser=async(req,res)=>{
         let blockedUser=await User.findById(id);
         console.log("blockedUser",blockedUser);
         if(!blockedUser){
-            res.status(400).json({message:"User Not Found"});
+          return  res.status(400).json({message:"User Not Found"});
         }
         blockedUser.isBlock=!blockedUser.isBlock;
         await blockedUser.save();
         res.status(200).json({
             success:true,
-            message:"Updated",
+            message: blockedUser.isBlock? "User Blocked": "User Unblocked",
             data:null
         })
     } catch (error) {
