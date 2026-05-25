@@ -21,9 +21,25 @@ const productSchema=new mongoose.Schema({
         ref:"Category",
         required:true
     },
+    brand:{
+        type:String,
+        required:true,
+    },
+    numReviews:{
+        type:Number,
+        default:0,
+    },
+    rating: {
+     type: Number,
+     default: 0
+     },
+    isFreeShipping:{
+        type:Boolean,
+        default:false,
+    },
     image:{
         type:String,
         required:true
     }
-})
+},{timestamps:true})
 module.exports=mongoose.model("Product",productSchema);

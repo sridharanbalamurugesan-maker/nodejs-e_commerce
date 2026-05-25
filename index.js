@@ -5,6 +5,8 @@ const categoryRouter = require('./Routes/categoryRoute');
 const productRoute = require('./Routes/productRoute');
 const orderRouter = require('./Routes/orderRoute');
 const paymentRouter = require('./Routes/paymentRoute');
+const myOrderRouter=require('./Routes/myOrderRoute');
+const viewReview=require('./Routes/viewReview');
 const cors = require('cors');
 const path = require("path");
 require('dotenv').config(); 
@@ -26,6 +28,8 @@ app.use('/category', categoryRouter);
 app.use('/product', productRoute);
 app.use('/order', orderRouter);
 app.use('/payment', paymentRouter);
+app.use('/my-order',myOrderRouter);
+app.use('/reviews',viewReview);
 
 connect();
 

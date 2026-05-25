@@ -1,9 +1,11 @@
 const products=require('../Models/product');
 const pagination = require('../utils/pagination');
+const Review=require('../Models/reviewProduct');
+const { default: mongoose } = require('mongoose');
 
 exports.createProduct=async(req,res)=>{
     try {
-        const {name,price,description,stocks,category}=req.body;
+        const {name,price,description,stocks,category,brand,isFreeShipping}=req.body;
         if(!req.file){
           return res.status(400).json({message:"Image required"});
         }
@@ -13,6 +15,8 @@ exports.createProduct=async(req,res)=>{
             description,
             stocks,
             category,
+            brand,
+            isFreeShipping,
             image:`product/${req.file.filename}`
         });
         res.status(201).json({
@@ -121,6 +125,80 @@ exports.productView=async(req,res)=>{
             message:"successfully fetched",
             data:viewProduct
         })
+    } catch (error) {
+        res.status(400).json({message:error.message});
+    }
+}
+exports.getProductByFilter=async(req,res)=>{
+    try {
+        const {category,brand,minPrice,maxPrice,rating,freeShipping}=req.query;
+        let filter={};
+        if(category){
+            filter.category=new mongoose.Types.ObjectId(category);
+        }
+        if(brand){
+            filter.brand={$in:brand.split(",")};
+        }
+        if(rating){
+            filter.rating={$gte:Number(rating)};
+        }
+        if(freeShipping=="true"){
+            filter.isFreeShipping=true;
+        }
+        if(minPrice||maxPrice){
+            filter.price={};
+            if(minPrice)filter.price.$gte=Number(minPrice);
+            if(maxPrice)filter.price.$lte=Number(maxPrice);
+        }
+        // console.log("FILTER:", filter);
+
+        const data=await products.find(filter).populate("category");
+        res.status(200).json({
+            success:true,
+            message:"successfully fetch",
+            data:data
+        })
+    } catch (error) {
+        res.status(400).json({message:error.message});
+    }
+}
+exports.addReview=async(req,res)=>{
+    try {
+        const {rating,comment}=req.body;
+        const productId = req.params.id;
+        const userId=req.user.id;
+        if (rating < 1 || rating > 5) {
+            return res.status(400).json({ message: "Rating must be between 1 and 5" });
+        }
+        //  const alreadyReviewed = await Review.findOne({
+        //     product: productId,
+        //     user: userId
+        // });
+
+        // if (alreadyReviewed) {
+        //     return res.status(400).json({ message: "You already reviewed this product" });
+        // }
+        const newReview=await Review.create({
+            product:productId,
+            user:userId,
+            rating,
+            comment,
+        })
+        const reviews=await Review.find({product:productId});
+        // console.log("Product Reviews",reviews);
+       
+    const avgRating=reviews.length>0?
+    Math.round((reviews.reduce((acc,cur)=>acc+cur.rating,0)/reviews.length)*10)/10
+                            :0;
+                        await products.findByIdAndUpdate(productId,{
+                            rating:avgRating,
+                            numReviews:reviews.length
+                        });
+                        res.status(200).json({
+                            success:true,
+                            message:"Review added successfully",
+                            data:null
+                        });
     } catch (error) {
         res.status(400).json({message:error.message});
     }
