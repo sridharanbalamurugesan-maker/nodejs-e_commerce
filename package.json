@@ -10,7 +10,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
     "multer": "^2.1.1",
-    "razorpay": "^2.9.6"
+    "nodemailer": "^8.0.10",
+    "razorpay": "^2.9.6",
+    "socket": "^1.1.105",
+    "socket.io": "^4.8.3"
   },
   "name": "backend",
   "version": "1.0.0",

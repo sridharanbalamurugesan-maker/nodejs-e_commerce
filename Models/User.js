@@ -30,6 +30,13 @@ const userSchema=new mongoos.Schema({
         type:Boolean,
         default:false
     },
+    resetToken: {
+       type: String
+    },
+
+resetTokenExpire: {
+      type: Date
+    },
     createAt:{
         type:Date,
         default:Date.now()

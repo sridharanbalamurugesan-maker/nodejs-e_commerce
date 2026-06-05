@@ -8,7 +8,7 @@ exports.getAllOrders=async(req,res)=>{
         if(!userId){
             res.status(400).json({message:"User Not found"});
         }
-        const data=await order.find({status:"completed"}).populate("product").sort({ createdAt: -1 });
+        const data=await order.find({user:userId,status:"completed"}).populate("product").sort({ createdAt: -1 });
         // console.log("getAllOrder",data);
         if(!data){
             res.status(400).json({

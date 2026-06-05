@@ -74,7 +74,7 @@ exports.getAllUser=async(req,res)=>{
     try {
         const userData=await User.find()
         if(!userData){
-            res.status(400).json({
+          return  res.status(400).json({
                 success:false,
                 message:"UserData not Fetch",
                 data:null
