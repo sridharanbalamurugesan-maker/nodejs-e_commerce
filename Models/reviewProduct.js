@@ -17,6 +17,10 @@ const reviewSchema=new mongoose.Schema({
   comment: {
    type: String
 },
+  images: {
+    type: [String],
+    default: []
+  },
 
 },{timestamps:true});
 module.exports=mongoose.model("ReviewProduct",reviewSchema);

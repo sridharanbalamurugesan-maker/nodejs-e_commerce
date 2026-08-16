@@ -14,6 +14,7 @@ const ticketRouter=require('./Routes/ticketRoute');
 const messageRouter=require('./Routes/messageRoute');
 const forgotRouter=require('./Routes/forgotPasswordRoute');
 const resetRouter=require('./Routes/resetPasswordRoute');
+const addressRouter=require('./Routes/addressRoute');
 const cors = require('cors');
 const path = require("path");
 const initializeScoket = require('./utils/socket');
@@ -31,6 +32,8 @@ app.use(express.json());
 
 app.use('/category', express.static(path.join(__dirname, "category")));
 app.use('/product', express.static(path.join(__dirname, "product")));
+app.use('/review', express.static(path.join(__dirname, "review")));
+app.use('/profile', express.static(path.join(__dirname, "profile")));
 
 app.use('/api', UserRouter);
 app.use('/category', categoryRouter);
@@ -44,6 +47,7 @@ app.use('/ticket',ticketRouter);
 app.use('/chatBox',messageRouter);
 app.use('/forgot',forgotRouter);
 app.use('/api',resetRouter);
+app.use('/address',addressRouter);
 
 
 connect();

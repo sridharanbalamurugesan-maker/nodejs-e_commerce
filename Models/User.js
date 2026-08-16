@@ -21,6 +21,10 @@ const userSchema=new mongoos.Schema({
         type:String,
         required:true
     },
+    image:{
+        type:String,
+        default:""
+    },
     role:{
        type:mongoos.Schema.Types.ObjectId,
        ref:"Role",

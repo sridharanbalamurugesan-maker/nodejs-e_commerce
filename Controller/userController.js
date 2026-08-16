@@ -90,6 +90,65 @@ exports.getAllUser=async(req,res)=>{
     }
 }
 
+exports.getProfile=async(req,res)=>{
+    try {
+        const user=await User.findById(req.user.id).select("-password -resetToken -resetTokenExpire");
+        if(!user){
+            return res.status(404).json({
+                success:false,
+                message:"User not found",
+                data:null
+            });
+        }
+        res.status(200).json({
+            success:true,
+            message:"Profile fetched successfully",
+            data:user
+        });
+    } catch (error) {
+        res.status(500).json({success:false,message:error.message});
+    }
+}
+
+exports.updateProfile=async(req,res)=>{
+    try {
+        const userId=req.user.id;
+        const {name,email,mobile,address}=req.validatedData || req.body;
+        const user=await User.findById(userId);
+        if(!user){
+            return res.status(404).json({
+                success:false,
+                message:"User not found",
+                data:null
+            });
+        }
+        const existingEmail=await User.findOne({email, _id:{$ne:userId}});
+        if(existingEmail){
+            return res.status(409).json({
+                success:false,
+                message:"Email already exists",
+                data:null
+            });
+        }
+        user.name=name;
+        user.email=email;
+        user.mobile=mobile;
+        user.address=address;
+        if(req.file){
+            user.image=`profile/${req.file.filename}`;
+        }
+        await user.save();
+        const updatedUser=await User.findById(userId).select("-password -resetToken -resetTokenExpire");
+        res.status(200).json({
+            success:true,
+            message:"Profile updated successfully",
+            data:updatedUser
+        });
+    } catch (error) {
+        res.status(500).json({success:false,message:error.message});
+    }
+}
+
 exports.blockUser=async(req,res)=>{
     try {
         const id=req.params.id;

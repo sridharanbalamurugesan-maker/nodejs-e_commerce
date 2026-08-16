@@ -28,17 +28,37 @@ exports.getAllOrders=async(req,res)=>{
 }
 exports.editOrder=async(req,res)=>{
     try {
-        const {rating}=req.body
+        const {comment}=req.body
+        const rating = Number(req.body.rating)
         const productId=req.params.id;
-        const productData=await reviewProduct.findOne({product:productId});
+        const userId=req.user.id;
+        const productData=await reviewProduct.findOne({product:productId,user:userId});
         if(!productData){
-                res.status(400).json({
+                return res.status(400).json({
                     success:false,
                     message:"Product Not Found",
                     data:null
                 })
             }
-        const data=await reviewProduct.findByIdAndUpdate(productData._id,{rating},{ returnOriginal: false });
+        const updateData={rating};
+        if(comment!==undefined){
+            updateData.comment=comment;
+        }
+        let existingImages = [];
+        if(req.body.existingImages){
+            try {
+                existingImages = typeof req.body.existingImages === "string"
+                    ? JSON.parse(req.body.existingImages)
+                    : req.body.existingImages;
+            } catch (error) {
+                existingImages = [];
+            }
+        }
+        const newImages = req.files?.length
+            ? req.files.map((file)=>`review/${file.filename}`)
+            : [];
+        updateData.images = [...existingImages, ...newImages];
+        const data=await reviewProduct.findByIdAndUpdate(productData._id,updateData,{ returnOriginal: false });
             res.status(200).json({
                     success:true,
                     message:"Successfully Updated",

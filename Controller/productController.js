@@ -1,7 +1,34 @@
 const products=require('../Models/product');
+const Category=require('../Models/Categorys');
 const pagination = require('../utils/pagination');
 const Review=require('../Models/reviewProduct');
 const { default: mongoose } = require('mongoose');
+
+const escapeRegex=(value="")=>{
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+const getRelatedSearchTerms=(raw="")=>{
+    const keyword=String(raw).trim().toLowerCase();
+    if(!keyword){
+        return [];
+    }
+    const terms=new Set([keyword]);
+    if(keyword.endsWith("ies") && keyword.length>3){
+        terms.add(keyword.slice(0,-3)+"y");
+    }else if(keyword.endsWith("es") && keyword.length>3){
+        terms.add(keyword.slice(0,-2));
+    }else if(keyword.endsWith("s") && keyword.length>1){
+        terms.add(keyword.slice(0,-1));
+    }else{
+        terms.add(keyword+"s");
+        terms.add(keyword+"es");
+        if(keyword.endsWith("y") && keyword.length>1){
+            terms.add(keyword.slice(0,-1)+"ies");
+        }
+    }
+    return [...terms];
+};
 
 exports.createProduct=async(req,res)=>{
     try {
@@ -34,11 +61,33 @@ exports.getAllProducts=async(req,res)=>{
         // const allProducts=await products.find();
         const page = req.query.page || 1;
         const limit = req.query.limit || 8;
+        const filter = {};
+        if (req.query.category) {
+            filter.category = new mongoose.Types.ObjectId(req.query.category);
+        }
+        if (req.query.search) {
+            const terms = getRelatedSearchTerms(req.query.search);
+            const pattern = terms.map(escapeRegex).join("|");
+            const searchQuery = [
+                { name: { $regex: pattern, $options: "i" } },
+                { description: { $regex: pattern, $options: "i" } },
+                { brand: { $regex: pattern, $options: "i" } },
+            ];
+            const matchedCategories = await Category.find({
+                name: { $regex: pattern, $options: "i" }
+            }).select("_id");
+            if (matchedCategories.length) {
+                searchQuery.push({
+                    category: { $in: matchedCategories.map((item) => item._id) }
+                });
+            }
+            filter.$or = searchQuery;
+        }
         const data= await pagination(
               products,
-              {},
-              req.query.page,
-              req.query.limit,
+              filter,
+              page,
+              limit,
               "category"
         );
         // console.log(data);
@@ -152,11 +201,19 @@ exports.getProductByFilter=async(req,res)=>{
         }
         // console.log("FILTER:", filter);
 
-        const data=await products.find(filter).populate("category");
+        const page = req.query.page || 1;
+        const limit = req.query.limit || 8;
+        const data= await pagination(
+              products,
+              filter,
+              page,
+              limit,
+              "category"
+        );
         res.status(200).json({
             success:true,
             message:"successfully fetch",
-            data:data
+            ...data
         })
     } catch (error) {
         res.status(400).json({message:error.message});
@@ -164,7 +221,8 @@ exports.getProductByFilter=async(req,res)=>{
 }
 exports.addReview=async(req,res)=>{
     try {
-        const {rating,comment}=req.body;
+        const {comment}=req.body;
+        const rating = Number(req.body.rating);
         const productId = req.params.id;
         const userId=req.user.id;
         if (rating < 1 || rating > 5) {
@@ -178,11 +236,15 @@ exports.addReview=async(req,res)=>{
         // if (alreadyReviewed) {
         //     return res.status(400).json({ message: "You already reviewed this product" });
         // }
+        const images = req.files?.length
+            ? req.files.map((file) => `review/${file.filename}`)
+            : [];
         const newReview=await Review.create({
             product:productId,
             user:userId,
             rating,
             comment,
+            images,
         })
         const reviews=await Review.find({product:productId});
         // console.log("Product Reviews",reviews);
@@ -201,5 +263,28 @@ exports.addReview=async(req,res)=>{
                         });
     } catch (error) {
         res.status(400).json({message:error.message});
+    }
+}
+
+exports.getMyReview=async(req,res)=>{
+    try {
+        const productId = req.params.id;
+        const userId = req.user.id;
+        const review = await Review.findOne({
+            product: productId,
+            user: userId
+        }).sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            message: review ? "Review fetched successfully" : "No review yet",
+            data: review
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message,
+            data: null
+        });
     }
 }
