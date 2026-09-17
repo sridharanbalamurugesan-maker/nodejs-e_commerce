@@ -39,18 +39,9 @@ app.use(cors({
     credentials: true
 }));
 
-app.options("*", cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    credentials: true
-}));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/category', express.static(path.join(__dirname, "category")));
 app.use('/product', express.static(path.join(__dirname, "product")));
