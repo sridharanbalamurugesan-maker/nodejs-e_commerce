@@ -23,12 +23,23 @@ require('dotenv').config();
 const app = express();
 // initializeScoket(server);
 
+const allowedOrigins = [
+    "http://localhost:3000",
+    "https://noisy-rice-14a8.devsoftean.workers.dev"
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "*",
-  credentials: true
+    origin: allowedOrigins,
+    credentials: true
+}));
+
+app.options("*", cors({
+    origin: allowedOrigins,
+    credentials: true
 }));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/category', express.static(path.join(__dirname, "category")));
 app.use('/product', express.static(path.join(__dirname, "product")));
