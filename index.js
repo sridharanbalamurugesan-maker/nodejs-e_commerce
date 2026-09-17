@@ -23,19 +23,8 @@ require('dotenv').config();
 const app = express();
 // initializeScoket(server);
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://api-ecommerce.softean.com"
-];
-
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: process.env.FRONTEND_URL || "*",
   credentials: true
 }));
 
